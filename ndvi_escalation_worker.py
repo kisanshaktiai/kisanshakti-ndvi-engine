@@ -46,21 +46,24 @@ def run():
             ndvi = aggregate_ndvi_from_grids(grid_cells)
 
             # Write ndvi_data
-            supabase.table("ndvi_data").upsert({
-                "land_id": land["id"],
-                "tenant_id": land["tenant_id"],
-                "date": date.today().isoformat(),
-                "ndvi_value": ndvi["mean_ndvi"],
-                "ndvi_min": ndvi["ndvi_min"],
-                "ndvi_max": ndvi["ndvi_max"],
-                "coverage": ndvi["coverage_percentage"],
-                "confidence_level": ndvi["confidence_level"],
-                "quality_score": ndvi["quality_score"],
-                "metadata": {
-                    "geometry_confidence": geo_conf,
-                    "method": "grid_weighted"
-                }
-            }).execute()
+            supabase.table("ndvi_data").upsert(
+                {
+                    "land_id": land["id"],
+                    "tenant_id": land["tenant_id"],
+                    "date": date.today().isoformat(),
+                    "ndvi_value": ndvi["mean_ndvi"],
+                    "ndvi_min": ndvi["ndvi_min"],
+                    "ndvi_max": ndvi["ndvi_max"],
+                    "coverage": ndvi["coverage_percentage"],
+                    "confidence_level": ndvi["confidence_level"],
+                    "quality_score": ndvi["quality_score"],
+                    "metadata": {
+                        "geometry_confidence": geo_conf,
+                        "method": "grid_weighted"
+                    },
+                },
+                on_conflict="land_id,date"
+                ).execute()
 
             # Escalation
             escalate, reason = should_escalate(land, geo_conf, ndvi)

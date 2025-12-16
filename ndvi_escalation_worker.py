@@ -28,13 +28,13 @@ def fetch_grid_stats_for_land(land):
 
     resp = supabase.rpc(
         "get_land_ndvi_grids",
-        {"land_id": land["id"]}
+        {
+            "land_id": land["id"],
+            "max_days_back": 7
+        }
     ).execute()
 
-    if not resp.data:
-        raise ValueError("No grid NDVI data available")
-
-    return resp.data
+    return resp.data or []
 
 
 def run():
@@ -45,6 +45,17 @@ def run():
             geometry, geo_conf = resolve_land_geometry(land)
 
             grid_cells = fetch_grid_stats_for_land(land)
+            
+            if not grid_cells:
+                # NDVI not ready – valid scientific state
+                supabase.table("lands").update({
+                    "last_ndvi_calculation": date.today().isoformat(),
+                    "last_processed_at": "now()",
+                    "ndvi_tested": False
+                }).eq("id", land["id"]).execute()
+
+                print(f"⏳ NDVI pending (no grid data yet) for land {land['id']}")
+                continue
 
             ndvi = aggregate_ndvi_from_grids(grid_cells)
             confidence = ndvi_confidence_score(land, ndvi)

@@ -1,0 +1,7 @@
+numpy
+rasterio
+shapely
+pystac-client
+planetary-computer
+supabase
+python-dateutil

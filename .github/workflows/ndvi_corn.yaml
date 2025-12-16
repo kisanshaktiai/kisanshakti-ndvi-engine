@@ -1,0 +1,42 @@
+name: NDVI Daily Escalation Job
+
+on:
+  schedule:
+    - cron: "30 20 * * *"   # 02:00 AM IST
+  workflow_dispatch:
+
+jobs:
+  ndvi-cron:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Validate environment variables
+        run: |
+          python - <<EOF
+          import os
+          assert os.environ.get("SUPABASE_URL"), "SUPABASE_URL missing"
+          assert os.environ.get("SUPABASE_SERVICE_ROLE_KEY"), "SUPABASE_SERVICE_ROLE_KEY missing"
+          print("Environment variables OK")
+          EOF
+
+      - name: Run NDVI Escalation Worker
+        run: python ndvi_escalation_worker.py

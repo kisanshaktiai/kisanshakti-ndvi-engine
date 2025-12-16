@@ -11,6 +11,8 @@ import pystac_client
 import rasterio
 from rasterio.mask import mask
 from supabase import create_client
+import planetary_computer
+
 
 # ────────────────────────────────────────────────
 # ENV
@@ -93,9 +95,12 @@ def process_tile(tile):
 
     for item in items:
         try:
+            item = planetary_computer.sign(item)
+
             red_href = item.assets["B04"].href
             nir_href = item.assets["B08"].href
             scl_href = item.assets["SCL"].href
+
 
             with rasterio.open(red_href) as red_src, \
                  rasterio.open(nir_href) as nir_src, \
@@ -174,3 +179,4 @@ def run():
 
 if __name__ == "__main__":
     run()
+

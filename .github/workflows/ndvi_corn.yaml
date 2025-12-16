@@ -37,6 +37,10 @@ jobs:
           assert os.environ.get("SUPABASE_SERVICE_ROLE_KEY"), "SUPABASE_SERVICE_ROLE_KEY missing"
           print("Environment variables OK")
           EOF
+     
+      - name: Run Tile NDVI Ingestion
+        run: python tile_ndvi_ingestion.py      
 
       - name: Run NDVI Escalation Worker
         run: python ndvi_escalation_worker.py
+
